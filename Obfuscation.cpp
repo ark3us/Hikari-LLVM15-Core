@@ -57,43 +57,57 @@ static cl::opt<bool>
 // End Obfuscator Options
 
 static void LoadEnv(void) {
+  errs() << "LoadEnv\n";
   if (getenv("SPLITOBF")) {
+    errs() << "Enable BasicBlockSpliting\n";
     EnableBasicBlockSplit = true;
   }
   if (getenv("SUBOBF")) {
+    errs() << "Enable Instruction Substitution\n";
     EnableSubstitution = true;
   }
   if (getenv("ALLOBF")) {
+    errs() << "Enable All Obfuscation\n";
     EnableAllObfuscation = true;
   }
   if (getenv("FCO")) {
+    errs() << "Enable Function CallSite Obfuscation\n";
     EnableFunctionCallObfuscate = true;
   }
   if (getenv("STRCRY")) {
+    errs() << "Enable String Encryption\n";
     EnableStringEncryption = true;
   }
   if (getenv("INDIBRAN")) {
+    errs() << "Enable Indirect Branching\n";
     EnableIndirectBranching = true;
   }
   if (getenv("FUNCWRA")) {
+    errs() << "Enable Function Wrapper\n";
     EnableFunctionWrapper = true; // Broken
   }
   if (getenv("BCFOBF")) {
+    errs() << "Enable BogusControlFlow\n";
     EnableBogusControlFlow = true;
   }
   if (getenv("ACDOBF")) {
+    errs() << "Enable AntiClassDump\n";
     EnableAntiClassDump = true;
   }
   if (getenv("CFFOBF")) {
+    errs() << "Enable Flattening\n";
     EnableFlattening = true;
   }
   if (getenv("CONSTENC")) {
+    errs() << "Enable Constant Encryption\n";
     EnableConstantEncryption = true;
   }
   if (getenv("ANTIHOOK")) {
+    errs() << "Enable AntiHooking\n";
     EnableAntiHooking = true;
   }
   if (getenv("ADB")) {
+    errs() << "Enable AntiDebugging\n";
     EnableAntiDebugging = true;
   }
 }

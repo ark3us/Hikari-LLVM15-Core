@@ -30,7 +30,7 @@ CryptoUtils::~CryptoUtils() {
 void CryptoUtils::prng_seed() {
   using namespace std::chrono;
   std::uint_fast64_t ms =
-      duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+      duration_cast<microseconds>(system_clock::now().time_since_epoch())
           .count();
   errs() << format("std::mt19937_64 seeded with current timestamp: %" PRIu64 "",
                    ms)
@@ -51,4 +51,22 @@ uint32_t CryptoUtils::get_range(uint32_t min, uint32_t max) {
     return 0;
   std::uniform_int_distribution<uint32_t> dis(min, max - 1);
   return dis(*eng);
+}
+
+std::string CryptoUtils::rand_string(int min_length, int max_length) {
+  // Define the character set for the random string
+  const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const size_t max_index = sizeof(charset) - 1;
+  int length = get_range(min_length, max_length);
+
+  // Seed the random number generator with the current time
+  // std::srand(static_cast<unsigned>(std::time(nullptr)));
+
+  // Generate the random string
+  std::string random_string(length, '\0');
+  for (size_t i = 0; i < length; ++i) {
+    random_string[i] = charset[get_range(0, max_index)];
+  }
+
+  return random_string;
 }
