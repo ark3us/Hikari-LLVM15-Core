@@ -59,9 +59,6 @@ std::string CryptoUtils::rand_string(int min_length, int max_length) {
   const size_t max_index = sizeof(charset) - 1;
   int length = get_range(min_length, max_length);
 
-  // Seed the random number generator with the current time
-  // std::srand(static_cast<unsigned>(std::time(nullptr)));
-
   // Generate the random string
   std::string random_string(length, '\0');
   for (size_t i = 0; i < length; ++i) {

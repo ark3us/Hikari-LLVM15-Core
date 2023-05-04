@@ -71,18 +71,6 @@ struct StringEncryption : public ModulePass {
     }
     errs() << "GV is handleable\n";
     return true;
-    /* Was:
-    if (GV->hasInitializer() && !GV->getSection().startswith("llvm.") &&
-        !(GV->getSection().contains("__objc") &&
-          !GV->getSection().contains("array")) &&
-        !GV->getName().contains("OBJC") &&
-        std::find(genedgv.begin(), genedgv.end(), GV) == genedgv.end() &&
-        ((GV->getLinkage() == GlobalValue::LinkageTypes::PrivateLinkage ||
-          GV->getLinkage() == GlobalValue::LinkageTypes::InternalLinkage) &&
-         (flag || usersAllInOneFunction(GV))))
-      return true;
-    return false;
-   */
   }
 
   bool runOnModule(Module &M) override {
@@ -339,18 +327,14 @@ struct StringEncryption : public ModulePass {
         llvm_unreachable("Unsupported CDS Type");
       }
       // Prepare new rawGV
-      auto RandName1 = cryptoutils->rand_string(8, 16);
-      auto RandName2 = cryptoutils->rand_string(8, 16);
-      errs() << "Encrypting " << GV->getName() << ": " << RandName1 << " "
-             << RandName2 << "\n";
       GlobalVariable *EncryptedRawGV = new GlobalVariable(
           *M, EncryptedConst->getType(), false, GV->getLinkage(),
-          EncryptedConst, RandName1, nullptr, GV->getThreadLocalMode(),
+          EncryptedConst, "", nullptr, GV->getThreadLocalMode(),
           GV->getType()->getAddressSpace());
       genedgv.emplace_back(EncryptedRawGV);
       GlobalVariable *DecryptSpaceGV = new GlobalVariable(
           *M, DummyConst->getType(), false, GV->getLinkage(), DummyConst,
-          RandName2, nullptr, GV->getThreadLocalMode(),
+          "", nullptr, GV->getThreadLocalMode(),
           GV->getType()->getAddressSpace());
       genedgv.emplace_back(DecryptSpaceGV);
       old2new[GV] = std::make_pair(EncryptedRawGV, DecryptSpaceGV);
@@ -460,8 +444,7 @@ struct StringEncryption : public ModulePass {
     BasicBlock *A = &(Func->getEntryBlock());
     BasicBlock *C = A->splitBasicBlock(A->getFirstNonPHIOrDbgOrLifetime());
     C->setName("PrecedingBlock");
-    BasicBlock *B =
-        BasicBlock::Create(Func->getContext(), cryptoutils->rand_string(8, 16), Func, C);
+    BasicBlock *B = BasicBlock::Create(Func->getContext(), "", Func, C);
     // Change A's terminator to jump to B
     // We'll add new terminator to jump C later
     BranchInst *newBr = BranchInst::Create(B);
@@ -470,8 +453,7 @@ struct StringEncryption : public ModulePass {
     HandleDecryptionBlock(B, C, GV2Keys);
     IRBuilder<> IRB(A->getFirstNonPHIOrDbgOrLifetime());
     // Add atomic load checking status in A
-    LoadInst *LI = IRB.CreateLoad(StatusGV->getValueType(), StatusGV,
-                                  cryptoutils->rand_string(8, 16));
+    LoadInst *LI = IRB.CreateLoad(StatusGV->getValueType(), StatusGV,"");
     LI->setAtomic(
         AtomicOrdering::Acquire); // Will be released at the start of C
     LI->setAlignment(Align(4));
@@ -571,8 +553,7 @@ struct StringEncryption : public ModulePass {
                           iter->second.second, {zero, offset});
         Value *DecryptedGEP = IRB.CreateGEP(iter->first->getValueType(),
                                             iter->first, {zero, offset2});
-        LoadInst *LI = IRB.CreateLoad(CastedCDA->getElementType(), EncryptedGEP,
-                                      cryptoutils->rand_string(8, 16));
+        LoadInst *LI = IRB.CreateLoad(CastedCDA->getElementType(), EncryptedGEP, "");
         Value *XORed = IRB.CreateXor(LI, CastedCDA->getElementAsConstant(i));
         IRB.CreateStore(XORed, DecryptedGEP);
         realkeyoff++;
